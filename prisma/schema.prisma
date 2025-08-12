@@ -1,0 +1,36 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model App {
+  id              String   @id @default(uuid())
+  name            String
+  api_key         String   @unique
+  allowed_origins String[] // Lista blanca para CORS
+  created_at      DateTime @default(now())
+  updated_at      DateTime @updatedAt
+
+  @@map("apps")
+}
+
+model FailedLogin {
+  id           Int      @id @default(autoincrement())
+  user_email   String
+  ip_address   String
+  attempts     Int      @default(0)
+  last_attempt DateTime @default(now())
+  created_at   DateTime @default(now())
+  updated_at   DateTime @updatedAt
+
+  // Composite index to optimize queries
+  @@index([user_email, ip_address, last_attempt])
+  @@map("failed_logins")
+}
