@@ -173,3 +173,7 @@ Thumbs.db
 
 # Swagger generated files
 swagger-output.json
+
+# Ignorable docs
+dt.md
+req.md
