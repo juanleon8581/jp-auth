@@ -2,7 +2,7 @@ import {
   ICreateAppData,
   IUpdateAppData,
   IAppData,
-} from '../interfaces';
+} from '../interfaces/app.interface';
 
 // Type aliases for backward compatibility
 export type CreateAppData = ICreateAppData;

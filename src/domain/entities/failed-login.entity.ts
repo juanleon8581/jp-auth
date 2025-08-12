@@ -2,7 +2,7 @@ import {
   ICreateFailedLoginData,
   IUpdateFailedLoginData,
   IFailedLoginData,
-} from '../interfaces';
+} from '../interfaces/failed-login.interface';
 
 // Type aliases for backward compatibility
 export type CreateFailedLoginData = ICreateFailedLoginData;

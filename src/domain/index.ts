@@ -1,7 +1,10 @@
 // Domain layer exports
 
 // Interfaces
-export * from './interfaces';
+export * from './interfaces/user.interface';
+export * from './interfaces/app.interface';
+export * from './interfaces/failed-login.interface';
+export * from './interfaces/token.interface';
 
 // Entities
 export * from './entities/user.entity';

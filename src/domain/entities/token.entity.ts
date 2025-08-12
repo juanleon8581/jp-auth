@@ -3,7 +3,7 @@ import {
   TOKEN_EXPIRATION,
   ICreateTokenData,
   ITokenData,
-} from '../interfaces';
+} from '../interfaces/token.interface';
 
 // Type aliases for backward compatibility
 export type CreateTokenData = ICreateTokenData;

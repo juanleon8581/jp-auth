@@ -2,7 +2,7 @@ import {
   ICreateUserData,
   IUpdateUserData,
   IUserData,
-} from '../interfaces';
+} from '../interfaces/user.interface';
 
 // Type aliases for backward compatibility
 export type CreateUserData = ICreateUserData;
