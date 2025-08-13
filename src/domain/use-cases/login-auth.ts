@@ -9,7 +9,7 @@ interface LoginAuthUseCase {
 export class LoginAuth implements LoginAuthUseCase {
   constructor(private readonly repository: AuthRepository) {}
 
-  execute(dto: LoginDto): Promise<UserEntity> {
-    return this.repository.login(dto);
+  async execute(dto: LoginDto): Promise<UserEntity> {
+    return await this.repository.login(dto);
   }
 }
