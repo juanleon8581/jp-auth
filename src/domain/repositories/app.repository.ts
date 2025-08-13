@@ -1,31 +1,31 @@
-import { App, CreateAppData, UpdateAppData } from "../entities/app.entity";
+import { AppEntity, CreateAppData, UpdateAppData } from "../entities/app.entity";
 
 // App repository interface
 export interface IAppRepository {
   // Create operations
-  create(appData: CreateAppData): Promise<App>;
+  create(appData: CreateAppData): Promise<AppEntity>;
 
   // Read operations
-  findById(id: string): Promise<App | null>;
-  findByApiKey(apiKey: string): Promise<App | null>;
-  findByName(name: string): Promise<App | null>;
-  findMany(options?: FindManyAppsOptions): Promise<App[]>;
+  findById(id: string): Promise<AppEntity | null>;
+  findByApiKey(apiKey: string): Promise<AppEntity | null>;
+  findByName(name: string): Promise<AppEntity | null>;
+  findMany(options?: FindManyAppsOptions): Promise<AppEntity[]>;
   count(options?: CountAppsOptions): Promise<number>;
   exists(id: string): Promise<boolean>;
   existsByApiKey(apiKey: string): Promise<boolean>;
   existsByName(name: string): Promise<boolean>;
 
   // Update operations
-  update(id: string, appData: UpdateAppData): Promise<App>;
-  regenerateApiKey(id: string): Promise<App>;
-  addAllowedOrigin(id: string, origin: string): Promise<App>;
-  removeAllowedOrigin(id: string, origin: string): Promise<App>;
+  update(id: string, appData: UpdateAppData): Promise<AppEntity>;
+  regenerateApiKey(id: string): Promise<AppEntity>;
+  addAllowedOrigin(id: string, origin: string): Promise<AppEntity>;
+  removeAllowedOrigin(id: string, origin: string): Promise<AppEntity>;
 
   // Delete operations
   delete(id: string): Promise<void>;
 
   // Validation operations
-  validateApiKey(apiKey: string): Promise<App | null>;
+  validateApiKey(apiKey: string): Promise<AppEntity | null>;
   validateOrigin(apiKey: string, origin: string): Promise<boolean>;
 }
 

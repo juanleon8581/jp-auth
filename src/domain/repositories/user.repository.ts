@@ -1,29 +1,29 @@
-import { User, CreateUserData, UpdateUserData } from "../entities/user.entity";
+import { UserEntity, CreateUserData, UpdateUserData } from "../entities/user.entity";
 
 // User repository interface
 export interface IUserRepository {
   // Create operations
-  create(userData: CreateUserData): Promise<User>;
+  create(userData: CreateUserData): Promise<UserEntity>;
 
   // Read operations
-  findById(id: string): Promise<User | null>;
-  findByEmail(email: string): Promise<User | null>;
-  findMany(options?: FindManyUsersOptions): Promise<User[]>;
+  findById(id: string): Promise<UserEntity | null>;
+  findByEmail(email: string): Promise<UserEntity | null>;
+  findMany(options?: FindManyUsersOptions): Promise<UserEntity[]>;
   count(options?: CountUsersOptions): Promise<number>;
   exists(id: string): Promise<boolean>;
   existsByEmail(email: string): Promise<boolean>;
 
   // Update operations
-  update(id: string, userData: UpdateUserData): Promise<User>;
-  updateEmailVerification(id: string, verified: boolean): Promise<User>;
+  update(id: string, userData: UpdateUserData): Promise<UserEntity>;
+  updateEmailVerification(id: string, verified: boolean): Promise<UserEntity>;
 
   // Delete operations
   delete(id: string): Promise<void>;
-  softDelete(id: string): Promise<User>;
+  softDelete(id: string): Promise<UserEntity>;
 
   // Bulk operations
-  createMany(usersData: CreateUserData[]): Promise<User[]>;
-  updateMany(ids: string[], userData: Partial<UpdateUserData>): Promise<User[]>;
+  createMany(usersData: CreateUserData[]): Promise<UserEntity[]>;
+  updateMany(ids: string[], userData: Partial<UpdateUserData>): Promise<UserEntity[]>;
   deleteMany(ids: string[]): Promise<void>;
 }
 

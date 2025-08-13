@@ -10,7 +10,7 @@ export type UpdateAppData = IUpdateAppData;
 export type AppData = IAppData;
 
 // App entity class
-export class App {
+export class AppEntity {
   private constructor(
     public readonly id: string,
     public readonly name: string,
@@ -21,8 +21,8 @@ export class App {
   ) {}
 
   // Factory method to create App from data
-  static create(data: AppData): App {
-    return new App(
+  static create(data: AppData): AppEntity {
+    return new AppEntity(
       data.id,
       data.name,
       data.api_key,
@@ -33,8 +33,8 @@ export class App {
   }
 
   // Factory method to create App from raw data
-  static fromRaw(data: AppData): App {
-    return App.create(data);
+  static fromRaw(data: AppData): AppEntity {
+    return AppEntity.create(data);
   }
 
   // Convert to plain object
@@ -67,8 +67,8 @@ export class App {
   }
 
   // Create updated version of app
-  update(data: UpdateAppData): App {
-    return new App(
+  update(data: UpdateAppData): AppEntity {
+    return new AppEntity(
       this.id,
       data.name ?? this.name,
       this.api_key,
@@ -89,13 +89,13 @@ export class App {
   }
 
   // Add new allowed origin
-  addAllowedOrigin(origin: string): App {
+  addAllowedOrigin(origin: string): AppEntity {
     if (this.allowed_origins.includes(origin)) {
       return this; // Origin already exists
     }
 
     const newOrigins = [...this.allowed_origins, origin];
-    return new App(
+    return new AppEntity(
       this.id,
       this.name,
       this.api_key,
@@ -106,7 +106,7 @@ export class App {
   }
 
   // Remove allowed origin
-  removeAllowedOrigin(origin: string): App {
+  removeAllowedOrigin(origin: string): AppEntity {
     const newOrigins = this.allowed_origins.filter((o) => o !== origin);
 
     // Ensure at least one origin remains
@@ -114,7 +114,7 @@ export class App {
       throw new Error("Cannot remove last allowed origin");
     }
 
-    return new App(
+    return new AppEntity(
       this.id,
       this.name,
       this.api_key,

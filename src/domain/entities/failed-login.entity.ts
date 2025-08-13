@@ -17,7 +17,7 @@ export const FAILED_LOGIN_CONSTANTS = {
 } as const;
 
 // FailedLogin entity class
-export class FailedLogin {
+export class FailedLoginEntity {
   private constructor(
     public readonly id: string,
     public readonly userId: string,
@@ -32,8 +32,8 @@ export class FailedLogin {
   ) {}
 
   // Factory method to create FailedLogin from data
-  static create(data: FailedLoginData): FailedLogin {
-    return new FailedLogin(
+  static create(data: FailedLoginData): FailedLoginEntity {
+    return new FailedLoginEntity(
       data.id,
       data.userId,
       data.ipAddress,
@@ -48,8 +48,8 @@ export class FailedLogin {
   }
 
   // Factory method to create FailedLogin from raw data
-  static fromRaw(data: FailedLoginData): FailedLogin {
-    return FailedLogin.create(data);
+  static fromRaw(data: FailedLoginData): FailedLoginEntity {
+    return FailedLoginEntity.create(data);
   }
 
   // Factory method to create new failed login record
@@ -86,8 +86,8 @@ export class FailedLogin {
   }
 
   // Increment failed attempts
-  incrementAttempts(): FailedLogin {
-    return new FailedLogin(
+  incrementAttempts(): FailedLoginEntity {
+    return new FailedLoginEntity(
       this.id,
       this.userId,
       this.ipAddress,
@@ -147,8 +147,8 @@ export class FailedLogin {
   }
 
   // Reset attempts (after successful login)
-  reset(): FailedLogin {
-    return new FailedLogin(
+  reset(): FailedLoginEntity {
+    return new FailedLoginEntity(
       this.id,
       this.userId,
       this.ipAddress,

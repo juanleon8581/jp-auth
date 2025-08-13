@@ -1,26 +1,26 @@
 import {
-  FailedLogin,
+  FailedLoginEntity,
   CreateFailedLoginData,
 } from "../entities/failed-login.entity";
 
 // FailedLogin repository interface
 export interface IFailedLoginRepository {
   // Create operations
-  create(data: CreateFailedLoginData): Promise<FailedLogin>;
+  create(data: CreateFailedLoginData): Promise<FailedLoginEntity>;
 
   // Read operations
-  findById(id: number): Promise<FailedLogin | null>;
+  findById(id: number): Promise<FailedLoginEntity | null>;
   findByEmailAndIp(
     email: string,
     ipAddress: string
-  ): Promise<FailedLogin | null>;
-  findByEmail(email: string): Promise<FailedLogin[]>;
-  findByIp(ipAddress: string): Promise<FailedLogin[]>;
-  findMany(options?: FindManyFailedLoginsOptions): Promise<FailedLogin[]>;
+  ): Promise<FailedLoginEntity | null>;
+  findByEmail(email: string): Promise<FailedLoginEntity[]>;
+  findByIp(ipAddress: string): Promise<FailedLoginEntity[]>;
+  findMany(options?: FindManyFailedLoginsOptions): Promise<FailedLoginEntity[]>;
   count(options?: CountFailedLoginsOptions): Promise<number>;
 
   // Update operations
-  incrementAttempts(email: string, ipAddress: string): Promise<FailedLogin>;
+  incrementAttempts(email: string, ipAddress: string): Promise<FailedLoginEntity>;
   resetAttempts(email: string, ipAddress: string): Promise<void>;
 
   // Delete operations

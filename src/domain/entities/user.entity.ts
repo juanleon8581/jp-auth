@@ -10,7 +10,7 @@ export type UpdateUserData = IUpdateUserData;
 export type UserData = IUserData;
 
 // User entity class
-export class User {
+export class UserEntity {
   private constructor(
     public readonly id: string,
     public readonly email: string,
@@ -23,8 +23,8 @@ export class User {
   ) {}
 
   // Factory method to create User from data
-  static create(data: UserData): User {
-    return new User(
+  static create(data: UserData): UserEntity {
+    return new UserEntity(
       data.id,
       data.email,
       data.name,
@@ -37,8 +37,8 @@ export class User {
   }
 
   // Factory method to create User from raw data
-  static fromRaw(data: UserData): User {
-    return User.create(data);
+  static fromRaw(data: UserData): UserEntity {
+    return UserEntity.create(data);
   }
 
   // Convert to plain object
@@ -74,8 +74,8 @@ export class User {
   }
 
   // Create updated version of user
-  update(data: UpdateUserData): User {
-    return new User(
+  update(data: UpdateUserData): UserEntity {
+    return new UserEntity(
       this.id,
       this.email,
       data.name ?? this.name,

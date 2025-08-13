@@ -1,24 +1,24 @@
-import { Token, CreateTokenData, TokenType } from "../entities/token.entity";
+import { TokenEntity, CreateTokenData, TokenType } from "../entities/token.entity";
 
 // Token repository interface
 export interface ITokenRepository {
   // Create operations
-  create(tokenData: CreateTokenData, id: string): Promise<Token>;
+  create(tokenData: CreateTokenData, id: string): Promise<TokenEntity>;
 
   // Read operations
-  findById(id: string): Promise<Token | null>;
-  findByToken(token: string): Promise<Token | null>;
-  findByUserId(userId: string, type?: TokenType): Promise<Token[]>;
-  findValidByUserId(userId: string, type?: TokenType): Promise<Token[]>;
-  findMany(options?: FindManyTokensOptions): Promise<Token[]>;
+  findById(id: string): Promise<TokenEntity | null>;
+  findByToken(token: string): Promise<TokenEntity | null>;
+  findByUserId(userId: string, type?: TokenType): Promise<TokenEntity[]>;
+  findValidByUserId(userId: string, type?: TokenType): Promise<TokenEntity[]>;
+  findMany(options?: FindManyTokensOptions): Promise<TokenEntity[]>;
   count(options?: CountTokensOptions): Promise<number>;
   exists(id: string): Promise<boolean>;
 
   // Update operations
-  revoke(id: string): Promise<Token>;
-  revokeByToken(token: string): Promise<Token>;
+  revoke(id: string): Promise<TokenEntity>;
+  revokeByToken(token: string): Promise<TokenEntity>;
   revokeAllByUserId(userId: string, type?: TokenType): Promise<number>; // Returns count of revoked tokens
-  updateMetadata(id: string, metadata: Record<string, any>): Promise<Token>;
+  updateMetadata(id: string, metadata: Record<string, any>): Promise<TokenEntity>;
 
   // Delete operations
   delete(id: string): Promise<void>;
@@ -27,7 +27,7 @@ export interface ITokenRepository {
   deleteRevokedOlderThan(hours: number): Promise<number>;
 
   // Validation operations
-  validateToken(token: string, type?: TokenType): Promise<Token | null>;
+  validateToken(token: string, type?: TokenType): Promise<TokenEntity | null>;
   isTokenValid(token: string): Promise<boolean>;
 
   // Cleanup operations

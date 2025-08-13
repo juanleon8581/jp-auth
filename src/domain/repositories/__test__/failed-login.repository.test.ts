@@ -9,19 +9,19 @@ import {
   FailedLoginValidationError,
   TooManyAttemptsError
 } from '../failed-login.repository';
-import { FailedLogin, CreateFailedLoginData } from '../../entities/failed-login.entity';
+import { FailedLoginEntity, CreateFailedLoginData } from '../../entities/failed-login.entity';
 
 // Mock implementation for testing interface compliance
 class MockFailedLoginRepository implements IFailedLoginRepository {
-  private failedLogins: Map<number, FailedLogin> = new Map();
+  private failedLogins: Map<number, FailedLoginEntity> = new Map();
   private nextId = 1;
 
-  async create(data: CreateFailedLoginData): Promise<FailedLogin> {
+  async create(data: CreateFailedLoginData): Promise<FailedLoginEntity> {
     const numericId = this.nextId++;
     const id = numericId.toString();
     const now = new Date();
     
-    const failedLogin = FailedLogin.create({
+    const failedLogin = FailedLoginEntity.create({
       id,
       userId: data.userId,
       ipAddress: data.ipAddress,
@@ -37,11 +37,11 @@ class MockFailedLoginRepository implements IFailedLoginRepository {
     return failedLogin;
   }
 
-  async findById(id: number): Promise<FailedLogin | null> {
+  async findById(id: number): Promise<FailedLoginEntity | null> {
     return this.failedLogins.get(id) || null;
   }
 
-  async findByEmailAndIp(email: string, ipAddress: string): Promise<FailedLogin | null> {
+  async findByEmailAndIp(email: string, ipAddress: string): Promise<FailedLoginEntity | null> {
     for (const failedLogin of this.failedLogins.values()) {
       if (failedLogin.userId === email && failedLogin.ipAddress === ipAddress) {
         return failedLogin;
@@ -50,17 +50,17 @@ class MockFailedLoginRepository implements IFailedLoginRepository {
     return null;
   }
 
-  async findByEmail(email: string): Promise<FailedLogin[]> {
+  async findByEmail(email: string): Promise<FailedLoginEntity[]> {
     return Array.from(this.failedLogins.values())
       .filter(fl => fl.userId === email);
   }
 
-  async findByIp(ipAddress: string): Promise<FailedLogin[]> {
+  async findByIp(ipAddress: string): Promise<FailedLoginEntity[]> {
     return Array.from(this.failedLogins.values())
       .filter(fl => fl.ipAddress === ipAddress);
   }
 
-  async findMany(options?: FindManyFailedLoginsOptions): Promise<FailedLogin[]> {
+  async findMany(options?: FindManyFailedLoginsOptions): Promise<FailedLoginEntity[]> {
     let failedLogins = Array.from(this.failedLogins.values());
     
     if (options?.email) {
@@ -95,7 +95,7 @@ class MockFailedLoginRepository implements IFailedLoginRepository {
     return results.length;
   }
 
-  async incrementAttempts(email: string, ipAddress: string): Promise<FailedLogin> {
+  async incrementAttempts(email: string, ipAddress: string): Promise<FailedLoginEntity> {
     let failedLogin = await this.findByEmailAndIp(email, ipAddress);
     
     if (!failedLogin) {
@@ -186,7 +186,7 @@ class MockFailedLoginRepository implements IFailedLoginRepository {
 
 describe('FailedLogin Repository Interface', () => {
   let repository: MockFailedLoginRepository;
-
+  
   beforeEach(() => {
     repository = new MockFailedLoginRepository();
   });
@@ -208,7 +208,7 @@ describe('FailedLogin Repository Interface', () => {
   });
 
   describe('Read operations', () => {
-    let testFailedLogin: FailedLogin;
+    let testFailedLogin: FailedLoginEntity;
 
     beforeEach(async () => {
       testFailedLogin = await repository.create({
@@ -327,7 +327,7 @@ describe('FailedLogin Repository Interface', () => {
   });
 
   describe('Delete operations', () => {
-    let testFailedLogin: FailedLogin;
+    let testFailedLogin: FailedLoginEntity;
 
     beforeEach(async () => {
       testFailedLogin = await repository.create({

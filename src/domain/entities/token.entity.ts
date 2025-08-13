@@ -13,7 +13,7 @@ export type TokenData = ITokenData;
 export { TokenType, TOKEN_EXPIRATION };
 
 // Token entity class
-export class Token {
+export class TokenEntity {
   private constructor(
     public readonly id: string,
     public readonly user_id: string,
@@ -27,8 +27,8 @@ export class Token {
   ) {}
 
   // Factory method to create Token from data
-  static create(data: TokenData): Token {
-    return new Token(
+  static create(data: TokenData): TokenEntity {
+    return new TokenEntity(
       data.id,
       data.userId,
       data.type,
@@ -42,8 +42,8 @@ export class Token {
   }
 
   // Factory method to create Token from raw data
-  static fromRaw(data: TokenData): Token {
-    return Token.create(data);
+  static fromRaw(data: TokenData): TokenEntity {
+    return TokenEntity.create(data);
   }
 
   // Factory method to create new token with appropriate expiration
@@ -113,8 +113,8 @@ export class Token {
   }
 
   // Revoke token
-  revoke(): Token {
-    return new Token(
+  revoke(): TokenEntity {
+    return new TokenEntity(
       this.id,
       this.user_id,
       this.type,
@@ -145,8 +145,8 @@ export class Token {
   }
 
   // Update metadata
-  updateMetadata(metadata: Record<string, any>): Token {
-    return new Token(
+  updateMetadata(metadata: Record<string, any>): TokenEntity {
+    return new TokenEntity(
       this.id,
       this.user_id,
       this.type,

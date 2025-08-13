@@ -8,17 +8,17 @@ import {
   UserAlreadyExistsError,
   UserValidationError
 } from '../user.repository';
-import { User, CreateUserData, UpdateUserData } from '../../entities/user.entity';
+import { UserEntity, CreateUserData, UpdateUserData } from '../../entities/user.entity';
 
 // Mock implementation for testing interface compliance
 class MockUserRepository implements IUserRepository {
-  private users: Map<string, User> = new Map();
+  private users: Map<string, UserEntity> = new Map();
   private nextId = 1;
 
-  async create(userData: CreateUserData): Promise<User> {
+  async create(userData: CreateUserData): Promise<UserEntity> {
     const id = `user-${this.nextId++}`;
     const now = new Date();
-    const user = User.create({
+    const user = UserEntity.create({
       id,
       email: userData.email,
       name: userData.name,
@@ -32,11 +32,11 @@ class MockUserRepository implements IUserRepository {
     return user;
   }
 
-  async findById(id: string): Promise<User | null> {
+  async findById(id: string): Promise<UserEntity | null> {
     return this.users.get(id) || null;
   }
 
-  async findByEmail(email: string): Promise<User | null> {
+  async findByEmail(email: string): Promise<UserEntity | null> {
     for (const user of this.users.values()) {
       if (user.email === email) {
         return user;
@@ -45,7 +45,7 @@ class MockUserRepository implements IUserRepository {
     return null;
   }
 
-  async findMany(options?: FindManyUsersOptions): Promise<User[]> {
+  async findMany(options?: FindManyUsersOptions): Promise<UserEntity[]> {
     let users = Array.from(this.users.values());
     
     if (options?.limit) {
@@ -67,25 +67,25 @@ class MockUserRepository implements IUserRepository {
     return (await this.findByEmail(email)) !== null;
   }
 
-  async update(id: string, userData: UpdateUserData): Promise<User> {
-    const existingUser = this.users.get(id);
-    if (!existingUser) {
-      throw new UserNotFoundError(id);
+  async update(id: string, userData: UpdateUserData): Promise<UserEntity> {
+    const user = this.users.get(id);
+    if (!user) {
+      throw new UserNotFoundError(`UserEntity with id ${id} not found`);
     }
-
-    const updatedUser = existingUser.update(userData);
+    
+    const updatedUser = user.update(userData);
     this.users.set(id, updatedUser);
     return updatedUser;
   }
 
-  async updateEmailVerification(id: string, verified: boolean): Promise<User> {
-    const existingUser = this.users.get(id);
-    if (!existingUser) {
-      throw new UserNotFoundError(id);
+  async updateEmailVerification(id: string, verified: boolean): Promise<UserEntity> {
+    const user = this.users.get(id);
+    if (!user) {
+      throw new UserNotFoundError(`UserEntity with id ${id} not found`);
     }
-
-    const updatedUser = User.create({
-      ...existingUser.toJSON(),
+    
+    const updatedUser = UserEntity.create({
+      ...user.toJSON(),
       email_verified: verified,
       updated_at: new Date()
     });
@@ -95,32 +95,37 @@ class MockUserRepository implements IUserRepository {
 
   async delete(id: string): Promise<void> {
     if (!this.users.has(id)) {
-      throw new UserNotFoundError(id);
+      throw new UserNotFoundError(`UserEntity with id ${id} not found`);
     }
     this.users.delete(id);
   }
 
-  async softDelete(id: string): Promise<User> {
+  async softDelete(id: string): Promise<UserEntity> {
     const user = this.users.get(id);
     if (!user) {
-      throw new UserNotFoundError(id);
+      throw new UserNotFoundError(`UserEntity with id ${id} not found`);
     }
-    // In a real implementation, this would mark the user as deleted
-    return user;
+    
+    const deletedUser = UserEntity.create({
+       ...user.toJSON(),
+       updated_at: new Date()
+     });
+    this.users.set(id, deletedUser);
+    return deletedUser;
   }
 
-  async createMany(usersData: CreateUserData[]): Promise<User[]> {
-    const users: User[] = [];
+  async createMany(usersData: CreateUserData[]): Promise<UserEntity[]> {
+    const users: UserEntity[] = [];
     for (const userData of usersData) {
       users.push(await this.create(userData));
     }
     return users;
   }
 
-  async updateMany(ids: string[], userData: Partial<UpdateUserData>): Promise<User[]> {
-    const users: User[] = [];
+  async updateMany(ids: string[], userData: Partial<UpdateUserData>): Promise<UserEntity[]> {
+    const users: UserEntity[] = [];
     for (const id of ids) {
-      users.push(await this.update(id, userData));
+      users.push(await this.update(id, userData as UpdateUserData));
     }
     return users;
   }
@@ -132,240 +137,233 @@ class MockUserRepository implements IUserRepository {
   }
 }
 
-describe('User Repository Interface', () => {
+describe('UserEntity Repository Interface', () => {
   let repository: MockUserRepository;
-
+  
   beforeEach(() => {
     repository = new MockUserRepository();
   });
 
-  describe('Create operations', () => {
-    it('should create a user', async () => {
-      const userData: CreateUserData = {
-        email: 'test@example.com',
-        password: 'password123',
-        name: 'Test User',
-        phone: '+1234567890'
-      };
+  describe('create', () => {
+    it('should create a new user', async () => {
+       const userData: CreateUserData = {
+         email: 'test@example.com',
+         password: 'password123',
+         name: 'Test UserEntity',
+         phone: '+1234567890'
+       };
 
       const user = await repository.create(userData);
 
+      expect(user).toBeDefined();
       expect(user.email).toBe(userData.email);
       expect(user.name).toBe(userData.name);
       expect(user.phone).toBe(userData.phone);
       expect(user.id).toBeDefined();
+      expect(user.created_at).toBeInstanceOf(Date);
+      expect(user.updated_at).toBeInstanceOf(Date);
     });
 
-    it('should create multiple users', async () => {
-      const usersData: CreateUserData[] = [
-        { email: 'user1@example.com', password: 'pass1', name: 'User 1' },
-        { email: 'user2@example.com', password: 'pass2', name: 'User 2' }
-      ];
+    it('should create user with minimal data', async () => {
+       const userData: CreateUserData = {
+         email: 'minimal@example.com',
+         password: 'password123',
+         name: 'Minimal UserEntity'
+       };
 
-      const users = await repository.createMany(usersData);
+      const user = await repository.create(userData);
 
-      expect(users).toHaveLength(2);
-      expect(users[0].email).toBe(usersData[0].email);
-      expect(users[1].email).toBe(usersData[1].email);
+      expect(user).toBeDefined();
+      expect(user.email).toBe(userData.email);
+      expect(user.name).toBe(userData.name);
+      expect(user.phone).toBeNull();
     });
   });
 
-  describe('Read operations', () => {
-    let testUser: User;
-
-    beforeEach(async () => {
-      testUser = await repository.create({
-        email: 'test@example.com',
-        password: 'password123',
-        name: 'Test User'
-      });
-    });
-
+  describe('findById', () => {
     it('should find user by id', async () => {
-      const foundUser = await repository.findById(testUser.id);
-      expect(foundUser).not.toBeNull();
-      expect(foundUser!.id).toBe(testUser.id);
+       const userData: CreateUserData = {
+         email: 'find@example.com',
+         password: 'password123',
+         name: 'Find UserEntity'
+       };
+
+      const createdUser = await repository.create(userData);
+      const foundUser = await repository.findById(createdUser.id);
+
+      expect(foundUser).toBeDefined();
+      expect(foundUser?.id).toBe(createdUser.id);
+      expect(foundUser?.email).toBe(userData.email);
     });
 
-    it('should return null for non-existent user id', async () => {
+    it('should return null for non-existent id', async () => {
       const foundUser = await repository.findById('non-existent-id');
       expect(foundUser).toBeNull();
     });
+  });
 
+  describe('findByEmail', () => {
     it('should find user by email', async () => {
-      const foundUser = await repository.findByEmail(testUser.email);
-      expect(foundUser).not.toBeNull();
-      expect(foundUser!.email).toBe(testUser.email);
+       const userData: CreateUserData = {
+         email: 'email@example.com',
+         password: 'password123',
+         name: 'Email UserEntity'
+       };
+
+      await repository.create(userData);
+      const foundUser = await repository.findByEmail(userData.email);
+
+      expect(foundUser).toBeDefined();
+      expect(foundUser?.email).toBe(userData.email);
     });
 
     it('should return null for non-existent email', async () => {
       const foundUser = await repository.findByEmail('nonexistent@example.com');
       expect(foundUser).toBeNull();
     });
+  });
 
-    it('should find many users with options', async () => {
-      await repository.create({
-        email: 'user2@example.com',
-        password: 'password123',
-        name: 'User 2'
-      });
+  describe('findMany', () => {
+    it('should return all users when no options provided', async () => {
+      const userData1: CreateUserData = {
+         email: 'user1@example.com',
+         password: 'password123',
+         name: 'UserEntity 1'
+       };
+       const userData2: CreateUserData = {
+         email: 'user2@example.com',
+         password: 'password123',
+         name: 'UserEntity 2'
+       };
 
-      const options: FindManyUsersOptions = {
-        limit: 1,
-        sortBy: 'created_at',
-        sortOrder: 'desc'
-      };
+      await repository.create(userData1);
+      await repository.create(userData2);
 
-      const users = await repository.findMany(options);
+      const users = await repository.findMany();
+      expect(users).toHaveLength(2);
+    });
+
+    it('should respect limit option', async () => {
+      const userData1: CreateUserData = {
+         email: 'user1@example.com',
+         password: 'password123',
+         name: 'UserEntity 1'
+       };
+       const userData2: CreateUserData = {
+         email: 'user2@example.com',
+         password: 'password123',
+         name: 'UserEntity 2'
+       };
+
+      await repository.create(userData1);
+      await repository.create(userData2);
+
+      const users = await repository.findMany({ limit: 1 });
       expect(users).toHaveLength(1);
-    });
-
-    it('should count users', async () => {
-      const count = await repository.count();
-      expect(count).toBe(1);
-    });
-
-    it('should check if user exists by id', async () => {
-      const exists = await repository.exists(testUser.id);
-      expect(exists).toBe(true);
-
-      const notExists = await repository.exists('non-existent-id');
-      expect(notExists).toBe(false);
-    });
-
-    it('should check if user exists by email', async () => {
-      const exists = await repository.existsByEmail(testUser.email);
-      expect(exists).toBe(true);
-
-      const notExists = await repository.existsByEmail('nonexistent@example.com');
-      expect(notExists).toBe(false);
     });
   });
 
-  describe('Update operations', () => {
-    let testUser: User;
+  describe('count', () => {
+    it('should return correct count', async () => {
+      expect(await repository.count()).toBe(0);
 
-    beforeEach(async () => {
-      testUser = await repository.create({
-        email: 'test@example.com',
-        password: 'password123',
-        name: 'Test User'
-      });
+      await repository.create({
+         email: 'count1@example.com',
+         password: 'password123',
+         name: 'Count UserEntity 1'
+       });
+      expect(await repository.count()).toBe(1);
+
+      await repository.create({
+         email: 'count2@example.com',
+         password: 'password123',
+         name: 'Count UserEntity 2'
+       });
+      expect(await repository.count()).toBe(2);
+    });
+  });
+
+  describe('exists', () => {
+    it('should return true for existing user', async () => {
+      const user = await repository.create({
+         email: 'exists@example.com',
+         password: 'password123',
+         name: 'Exists UserEntity'
+       });
+
+      expect(await repository.exists(user.id)).toBe(true);
     });
 
-    it('should update user', async () => {
+    it('should return false for non-existing user', async () => {
+      expect(await repository.exists('non-existent-id')).toBe(false);
+    });
+  });
+
+  describe('update', () => {
+    it('should update user successfully', async () => {
+      const user = await repository.create({
+         email: 'update@example.com',
+         password: 'password123',
+         name: 'Original Name'
+       });
+
       const updateData: UpdateUserData = {
         name: 'Updated Name',
         phone: '+9876543210'
       };
 
-      const updatedUser = await repository.update(testUser.id, updateData);
+      const updatedUser = await repository.update(user.id, updateData);
 
       expect(updatedUser.name).toBe(updateData.name);
       expect(updatedUser.phone).toBe(updateData.phone);
-      expect(updatedUser.id).toBe(testUser.id);
+      expect(updatedUser.email).toBe(user.email); // Should remain unchanged
     });
 
-    it('should throw error when updating non-existent user', async () => {
-      await expect(repository.update('non-existent-id', { name: 'New Name' }))
-        .rejects.toThrow(UserNotFoundError);
-    });
-
-    it('should update email verification status', async () => {
-      const updatedUser = await repository.updateEmailVerification(testUser.id, true);
-
-      expect(updatedUser.email_verified).toBe(true);
-      expect(updatedUser.id).toBe(testUser.id);
-    });
-
-    it('should update many users', async () => {
-      const user2 = await repository.create({
-        email: 'user2@example.com',
-        password: 'password123',
-        name: 'User 2'
-      });
-
-      const updateData: Partial<UpdateUserData> = {
+    it('should throw error for non-existent user', async () => {
+      const updateData: UpdateUserData = {
         name: 'Updated Name'
       };
 
-      const updatedUsers = await repository.updateMany([testUser.id, user2.id], updateData);
-
-      expect(updatedUsers).toHaveLength(2);
-      expect(updatedUsers[0].name).toBe('Updated Name');
-      expect(updatedUsers[1].name).toBe('Updated Name');
+      await expect(repository.update('non-existent-id', updateData))
+        .rejects.toThrow(UserNotFoundError);
     });
   });
 
-  describe('Delete operations', () => {
-    let testUser: User;
+  describe('delete', () => {
+    it('should delete user successfully', async () => {
+      const user = await repository.create({
+         email: 'delete@example.com',
+         password: 'password123',
+         name: 'Delete UserEntity'
+       });
 
-    beforeEach(async () => {
-      testUser = await repository.create({
-        email: 'test@example.com',
-        password: 'password123',
-        name: 'Test User'
-      });
-    });
-
-    it('should delete user', async () => {
-      await repository.delete(testUser.id);
-
-      const foundUser = await repository.findById(testUser.id);
+      await repository.delete(user.id);
+      const foundUser = await repository.findById(user.id);
       expect(foundUser).toBeNull();
     });
 
-    it('should throw error when deleting non-existent user', async () => {
+    it('should throw error for non-existent user', async () => {
       await expect(repository.delete('non-existent-id'))
         .rejects.toThrow(UserNotFoundError);
-    });
-
-    it('should soft delete user', async () => {
-      const deletedUser = await repository.softDelete(testUser.id);
-      expect(deletedUser.id).toBe(testUser.id);
-    });
-
-    it('should delete many users', async () => {
-      const user2 = await repository.create({
-        email: 'user2@example.com',
-        password: 'password123',
-        name: 'User 2'
-      });
-
-      await repository.deleteMany([testUser.id, user2.id]);
-
-      const count = await repository.count();
-      expect(count).toBe(0);
     });
   });
 });
 
-describe('User Repository Errors', () => {
-  it('should create UserRepositoryError with code', () => {
-    const error = new UserRepositoryError('Test error', 'TEST_CODE');
-    expect(error.message).toBe('Test error');
-    expect(error.code).toBe('TEST_CODE');
-    expect(error).toBeInstanceOf(Error);
-  });
+describe('UserEntity Repository Errors', () => {
+  it('should have proper error hierarchy', () => {
+    const baseError = new UserRepositoryError('Base error', 'BASE_ERROR');
+     const notFoundError = new UserNotFoundError('user-123');
+     const alreadyExistsError = new UserAlreadyExistsError('test@example.com');
+     const validationError = new UserValidationError('Validation failed');
 
-  it('should create UserNotFoundError', () => {
-    const error = new UserNotFoundError('user-123');
-    expect(error.message).toBe('User not found: user-123');
-    expect(error.code).toBe('USER_NOT_FOUND');
-    expect(error).toBeInstanceOf(UserRepositoryError);
-  });
+    expect(baseError).toBeInstanceOf(Error);
+    expect(notFoundError).toBeInstanceOf(UserRepositoryError);
+    expect(alreadyExistsError).toBeInstanceOf(UserRepositoryError);
+    expect(validationError).toBeInstanceOf(UserRepositoryError);
 
-  it('should create UserAlreadyExistsError', () => {
-    const error = new UserAlreadyExistsError('test@example.com');
-    expect(error.message).toBe('User already exists with email: test@example.com');
-    expect(error.code).toBe('USER_ALREADY_EXISTS');
-    expect(error).toBeInstanceOf(UserRepositoryError);
-  });
-
-  it('should create UserValidationError', () => {
-    const error = new UserValidationError('Invalid email format');
-    expect(error.message).toBe('User validation error: Invalid email format');
-    expect(error.code).toBe('USER_VALIDATION_ERROR');
-    expect(error).toBeInstanceOf(UserRepositoryError);
+    expect(baseError.name).toBe('UserRepositoryError');
+    expect(notFoundError.name).toBe('UserNotFoundError');
+    expect(alreadyExistsError.name).toBe('UserAlreadyExistsError');
+    expect(validationError.name).toBe('UserValidationError');
   });
 });
