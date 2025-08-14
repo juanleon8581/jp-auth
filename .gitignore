@@ -65,6 +65,9 @@ jspm_packages/
 .env.test.local
 .env.production.local
 .env.example
+.env.dev
+.env.prod
+.env.qa
 
 # parcel-bundler cache
 .cache
@@ -177,3 +180,4 @@ swagger-output.json
 # Ignorable docs
 dt.md
 req.md
+

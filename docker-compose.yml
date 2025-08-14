@@ -1,25 +1,53 @@
 version: '3.8'
 
 services:
-  # API Service
+  # API Service (Development)
   api:
-    build: .
+    build:
+      context: .
+      target: development
     ports:
       - "3000:3000"
     environment:
-      - NODE_ENV=development
+      - NODE_ENV=dev
       - DATABASE_URL=postgresql://user:password@db:5432/auth_db?schema=public
     env_file:
       - .env
     depends_on:
       db:
         condition: service_healthy
+      redis:
+        condition: service_healthy
     volumes:
       - ./src:/app/src
       - ./prisma:/app/prisma
-    command: npm run dev
+      - /app/node_modules
     networks:
       - auth-network
+    restart: unless-stopped
+
+  # API Service (Production)
+  api-prod:
+    build:
+      context: .
+      target: production
+    ports:
+      - "3001:3000"
+    environment:
+      - NODE_ENV=prod
+      - DATABASE_URL=postgresql://user:password@db:5432/auth_db?schema=public
+    env_file:
+      - .env.prod
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - auth-network
+    restart: unless-stopped
+    profiles:
+      - production
 
   # PostgreSQL Database
   db:
