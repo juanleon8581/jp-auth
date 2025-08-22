@@ -52,7 +52,7 @@ export class TokenEntity {
     id: string
   ): Omit<TokenData, "isRevoked" | "createdAt" | "updatedAt"> {
     const now = new Date();
-    const expiresAt = data.expiresAt ?? Token.calculateExpiration(data.type);
+    const expiresAt = data.expiresAt ?? TokenEntity.calculateExpiration(data.type);
 
     return {
       id,

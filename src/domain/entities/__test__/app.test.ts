@@ -1,5 +1,5 @@
 import '../../../setup';
-import { App, CreateAppData, UpdateAppData } from '../app.entity';
+import { AppEntity, CreateAppData, UpdateAppData } from '../app.entity';
 
 describe('App Entity', () => {
   const mockAppData = {
@@ -12,7 +12,7 @@ describe('App Entity', () => {
   };
 
   it('should create an app from data', () => {
-    const app = App.create(mockAppData);
+    const app = AppEntity.create(mockAppData);
 
     expect(app.id).toBe(mockAppData.id);
     expect(app.name).toBe(mockAppData.name);
@@ -23,7 +23,7 @@ describe('App Entity', () => {
   });
 
   it('should create app from raw data', () => {
-    const app = App.fromRaw(mockAppData);
+    const app = AppEntity.fromRaw(mockAppData);
 
     expect(app.id).toBe(mockAppData.id);
     expect(app.name).toBe(mockAppData.name);
@@ -32,14 +32,14 @@ describe('App Entity', () => {
   });
 
   it('should convert to JSON', () => {
-    const app = App.create(mockAppData);
+    const app = AppEntity.create(mockAppData);
     const json = app.toJSON();
 
     expect(json).toEqual(mockAppData);
   });
 
   it('should update app data', () => {
-    const app = App.create(mockAppData);
+    const app = AppEntity.create(mockAppData);
     const updateData: UpdateAppData = {
       name: 'Updated App Name',
       allowed_origins: ['https://updated.com']
@@ -55,7 +55,7 @@ describe('App Entity', () => {
   });
 
   it('should check if origin is allowed', () => {
-    const app = App.create(mockAppData);
+    const app = AppEntity.create(mockAppData);
 
     expect(app.isOriginAllowed('http://localhost:3000')).toBe(true);
     expect(app.isOriginAllowed('https://example.com')).toBe(true);
@@ -63,7 +63,7 @@ describe('App Entity', () => {
   });
 
   it('should get public app data without API key', () => {
-    const app = App.create(mockAppData);
+    const app = AppEntity.create(mockAppData);
     const publicData = app.toPublic();
 
     expect(publicData.id).toBe(mockAppData.id);
@@ -73,14 +73,14 @@ describe('App Entity', () => {
   });
 
   it('should validate API key', () => {
-    const app = App.create(mockAppData);
+    const app = AppEntity.create(mockAppData);
 
     expect(app.validateApiKey(mockAppData.api_key)).toBe(true);
     expect(app.validateApiKey('wrong-api-key')).toBe(false);
   });
 
   it('should check if can update with valid data', () => {
-    const app = App.create(mockAppData);
+    const app = AppEntity.create(mockAppData);
     const validUpdateData: UpdateAppData = { name: 'New Name' };
     const invalidUpdateData = null;
 
@@ -89,7 +89,7 @@ describe('App Entity', () => {
   });
 
   it('should add allowed origin', () => {
-    const app = App.create(mockAppData);
+    const app = AppEntity.create(mockAppData);
     const newOrigin = 'https://neworigin.com';
 
     const updatedApp = app.addAllowedOrigin(newOrigin);
@@ -99,7 +99,7 @@ describe('App Entity', () => {
   });
 
   it('should not add duplicate allowed origin', () => {
-    const app = App.create(mockAppData);
+    const app = AppEntity.create(mockAppData);
     const existingOrigin = mockAppData.allowed_origins[0];
 
     const updatedApp = app.addAllowedOrigin(existingOrigin);
@@ -108,7 +108,7 @@ describe('App Entity', () => {
   });
 
   it('should remove allowed origin', () => {
-    const app = App.create(mockAppData);
+    const app = AppEntity.create(mockAppData);
     const originToRemove = mockAppData.allowed_origins[0];
 
     const updatedApp = app.removeAllowedOrigin(originToRemove);

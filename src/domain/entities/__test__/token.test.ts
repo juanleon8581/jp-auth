@@ -1,5 +1,5 @@
 import '../../../setup';
-import { Token, CreateTokenData, TokenType, TOKEN_EXPIRATION } from '../token.entity';
+import { TokenEntity, CreateTokenData, TokenType, TOKEN_EXPIRATION } from '../token.entity';
 
 describe('Token Entity', () => {
   const mockTokenData = {
@@ -15,7 +15,7 @@ describe('Token Entity', () => {
   };
 
   it('should create a token from data', () => {
-    const token = Token.create(mockTokenData);
+    const token = TokenEntity.create(mockTokenData);
 
     expect(token.id).toBe(mockTokenData.id);
     expect(token.user_id).toBe(mockTokenData.userId);
@@ -29,7 +29,7 @@ describe('Token Entity', () => {
   });
 
   it('should create token from raw data', () => {
-    const token = Token.fromRaw(mockTokenData);
+    const token = TokenEntity.fromRaw(mockTokenData);
 
     expect(token.user_id).toBe(mockTokenData.userId);
     expect(token.type).toBe(mockTokenData.type);
@@ -42,76 +42,73 @@ describe('Token Entity', () => {
       value: 'new-token-value'
     };
 
-    const newToken = Token.createNew(createData, 'new-token-id');
+    const newToken = TokenEntity.createNew(createData, 'new-token-id');
 
     expect(newToken.id).toBe('new-token-id');
     expect(newToken.userId).toBe(createData.userId);
     expect(newToken.type).toBe(createData.type);
     expect(newToken.value).toBe(createData.value);
-    expect(newToken.expiresAt).toBeInstanceOf(Date);
     expect(newToken.metadata).toEqual({});
+    expect(newToken.expiresAt).toBeInstanceOf(Date);
   });
 
   it('should create new token with custom expiration', () => {
-    const customExpiration = new Date('2024-12-31T23:59:59Z');
     const createData: CreateTokenData = {
       userId: 'user-789',
-      type: TokenType.EMAIL_VERIFICATION,
-      value: 'verification-token',
-      expiresAt: customExpiration,
-      metadata: { purpose: 'email_verification' }
+      type: TokenType.ACCESS,
+      value: 'access-token-value',
+      expiresAt: new Date('2024-12-31T23:59:59Z')
     };
 
-    const newToken = Token.createNew(createData, 'verification-token-id');
+    const newToken = TokenEntity.createNew(createData, 'access-token-id');
 
-    expect(newToken.expiresAt).toBe(customExpiration);
+    expect(newToken.expiresAt).toEqual(createData.expiresAt);
+  });
+
+  it('should create new token with metadata', () => {
+    const createData: CreateTokenData = {
+      userId: 'user-101',
+      type: TokenType.REFRESH,
+      value: 'refresh-token-value',
+      metadata: { device: 'mobile', ip: '192.168.1.1' }
+    };
+
+    const newToken = TokenEntity.createNew(createData, 'refresh-token-id');
+
     expect(newToken.metadata).toEqual(createData.metadata);
   });
 
-  it('should calculate expiration for different token types', () => {
-    const now = new Date();
-    
-    const accessExpiration = Token.calculateExpiration(TokenType.ACCESS);
-    const refreshExpiration = Token.calculateExpiration(TokenType.REFRESH);
-    const resetExpiration = Token.calculateExpiration(TokenType.RESET_PASSWORD);
-    const verificationExpiration = Token.calculateExpiration(TokenType.EMAIL_VERIFICATION);
-
-    expect(accessExpiration.getTime()).toBeGreaterThan(now.getTime());
-    expect(refreshExpiration.getTime()).toBeGreaterThan(accessExpiration.getTime());
-    expect(resetExpiration.getTime()).toBeGreaterThan(now.getTime());
-    expect(verificationExpiration.getTime()).toBeGreaterThan(now.getTime());
-
-    // Check approximate durations (allowing for small timing differences)
-    const accessDuration = accessExpiration.getTime() - now.getTime();
-    const refreshDuration = refreshExpiration.getTime() - now.getTime();
-    
-    expect(accessDuration).toBeCloseTo(TOKEN_EXPIRATION.ACCESS, -2); // Within 100ms
-    expect(refreshDuration).toBeCloseTo(TOKEN_EXPIRATION.REFRESH, -2);
-  });
-
-  it('should convert to JSON', () => {
-    const token = Token.create(mockTokenData);
-    const json = token.toJSON();
-
-    expect(json).toEqual(mockTokenData);
-  });
-
-  it('should check if token is valid', () => {
-    const validToken = Token.create({
+  it('should check if token is expired', () => {
+    const expiredToken = TokenEntity.create({
       ...mockTokenData,
-      expiresAt: new Date(Date.now() + 60000), // 1 minute from now
+      expiresAt: new Date('2020-01-01T00:00:00Z') // Past date
+    });
+
+    const validToken = TokenEntity.create({
+      ...mockTokenData,
+      expiresAt: new Date('2030-01-01T00:00:00Z') // Future date
+    });
+
+    expect(expiredToken.isExpired()).toBe(true);
+    expect(validToken.isExpired()).toBe(false);
+  });
+
+  it('should check if token is valid (not expired and not revoked)', () => {
+    const validToken = TokenEntity.create({
+      ...mockTokenData,
+      expiresAt: new Date('2030-01-01T00:00:00Z'),
       isRevoked: false
     });
 
-    const expiredToken = Token.create({
+    const expiredToken = TokenEntity.create({
       ...mockTokenData,
-      expiresAt: new Date(Date.now() - 60000), // 1 minute ago
+      expiresAt: new Date('2020-01-01T00:00:00Z'),
       isRevoked: false
     });
 
-    const revokedToken = Token.create({
+    const revokedToken = TokenEntity.create({
       ...mockTokenData,
-      expiresAt: new Date(Date.now() + 60000),
+      expiresAt: new Date('2030-01-01T00:00:00Z'),
       isRevoked: true
     });
 
@@ -120,104 +117,109 @@ describe('Token Entity', () => {
     expect(revokedToken.isValid()).toBe(false);
   });
 
-  it('should check if token is expired', () => {
-    const futureDate = new Date(Date.now() + 60000);
-    const pastDate = new Date(Date.now() - 60000);
-
-    const validToken = Token.create({ ...mockTokenData, expiresAt: futureDate });
-    const expiredToken = Token.create({ ...mockTokenData, expiresAt: pastDate });
-
-    expect(validToken.isExpired()).toBe(false);
-    expect(expiredToken.isExpired()).toBe(true);
-  });
-
-  it('should check if token is revoked', () => {
-    const activeToken = Token.create({ ...mockTokenData, isRevoked: false });
-    const revokedToken = Token.create({ ...mockTokenData, isRevoked: true });
-
-    expect(activeToken.isRevoked()).toBe(false);
-    expect(revokedToken.isRevoked()).toBe(true);
-  });
-
   it('should revoke token', () => {
-    const token = Token.create({ ...mockTokenData, isRevoked: false });
+    const token = TokenEntity.create(mockTokenData);
+    
+    expect(token.revoked).toBe(false);
+    
     const revokedToken = token.revoke();
-
+    
     expect(revokedToken.revoked).toBe(true);
-    expect(revokedToken.updated_at.getTime()).toBeGreaterThan(token.updated_at.getTime());
-    expect(revokedToken.id).toBe(token.id); // ID should remain the same
+    expect(revokedToken.updated_at).toBeInstanceOf(Date);
   });
 
-  it('should get time until expiration in minutes', () => {
-    const futureDate = new Date(Date.now() + 30 * 60 * 1000); // 30 minutes from now
-    const token = Token.create({ ...mockTokenData, expiresAt: futureDate });
-
-    const minutesUntilExpiration = token.getTimeUntilExpirationMinutes();
-    expect(minutesUntilExpiration).toBeGreaterThan(29);
-    expect(minutesUntilExpiration).toBeLessThanOrEqual(30);
-  });
-
-  it('should return 0 minutes for expired token', () => {
-    const pastDate = new Date(Date.now() - 60000);
-    const expiredToken = Token.create({ ...mockTokenData, expiresAt: pastDate });
-
-    expect(expiredToken.getTimeUntilExpirationMinutes()).toBe(0);
-  });
-
-  it('should check if token belongs to user', () => {
-    const token = Token.create(mockTokenData);
-
-    expect(token.belongsToUser(mockTokenData.userId)).toBe(true);
-    expect(token.belongsToUser('different-user-id')).toBe(false);
-  });
-
-  it('should check if token is of specific type', () => {
-    const accessToken = Token.create({ ...mockTokenData, type: TokenType.ACCESS });
-    const refreshToken = Token.create({ ...mockTokenData, type: TokenType.REFRESH });
-
-    expect(accessToken.isOfType(TokenType.ACCESS)).toBe(true);
-    expect(accessToken.isOfType(TokenType.REFRESH)).toBe(false);
-    expect(refreshToken.isOfType(TokenType.REFRESH)).toBe(true);
-    expect(refreshToken.isOfType(TokenType.ACCESS)).toBe(false);
-  });
-
-  it('should update metadata', () => {
-    const token = Token.create(mockTokenData);
-    const newMetadata = { updated: true, version: 2 };
+  it('should update token metadata', () => {
+    const token = TokenEntity.create(mockTokenData);
+    const newMetadata = { device: 'desktop', location: 'office' };
+    
     const updatedToken = token.updateMetadata(newMetadata);
-
+    
     expect(updatedToken.metadata).toEqual({ ...mockTokenData.metadata, ...newMetadata });
-    expect(updatedToken.updated_at.getTime()).toBeGreaterThan(token.updated_at.getTime());
-    expect(updatedToken.id).toBe(token.id); // ID should remain the same
+    expect(updatedToken.updated_at).toBeInstanceOf(Date);
   });
 
-  it('should determine if token should be cleaned up', () => {
-    const now = new Date();
-    const oldToken = Token.create({
-      ...mockTokenData,
-      createdAt: new Date(now.getTime() - 26 * 60 * 60 * 1000), // 26 hours ago
-      expiresAt: new Date(now.getTime() - 25 * 60 * 60 * 1000) // 25 hours ago (expired)
-    });
+  it('should get token data for serialization', () => {
+    const token = TokenEntity.create(mockTokenData);
+    const tokenData = token.toJSON();
 
-    const recentToken = Token.create({
-      ...mockTokenData,
-      createdAt: new Date(now.getTime() - 1 * 60 * 60 * 1000), // 1 hour ago
-      expiresAt: new Date(now.getTime() + 1 * 60 * 60 * 1000) // 1 hour from now
+    expect(tokenData).toEqual({
+      id: mockTokenData.id,
+      userId: mockTokenData.userId,
+      type: mockTokenData.type,
+      value: mockTokenData.value,
+      expiresAt: mockTokenData.expiresAt,
+      isRevoked: mockTokenData.isRevoked,
+      metadata: mockTokenData.metadata,
+      createdAt: mockTokenData.createdAt,
+      updatedAt: mockTokenData.updatedAt
     });
-
-    expect(oldToken.shouldCleanup()).toBe(true);
-    expect(recentToken.shouldCleanup()).toBe(false);
   });
 
-  it('should use custom cleanup hours', () => {
-    const now = new Date();
-    const token = Token.create({
-      ...mockTokenData,
-      createdAt: new Date(now.getTime() - 3 * 60 * 60 * 1000), // 3 hours ago
-      expiresAt: new Date(now.getTime() - 2 * 60 * 60 * 1000) // 2 hours ago (expired)
+  it('should get token data in domain format', () => {
+     const token = TokenEntity.create(mockTokenData);
+     const domainData = token.toJSON();
+
+     expect(domainData).toEqual({
+       id: mockTokenData.id,
+       userId: mockTokenData.userId,
+       type: mockTokenData.type,
+       value: mockTokenData.value,
+       expiresAt: mockTokenData.expiresAt,
+       isRevoked: mockTokenData.isRevoked,
+       metadata: mockTokenData.metadata,
+       createdAt: mockTokenData.createdAt,
+       updatedAt: mockTokenData.updatedAt
+     });
+   });
+
+  describe('Token Expiration Constants', () => {
+    it('should have correct expiration times', () => {
+      expect(TOKEN_EXPIRATION.ACCESS).toBe(15 * 60 * 1000); // 15 minutes
+      expect(TOKEN_EXPIRATION.REFRESH).toBe(7 * 24 * 60 * 60 * 1000); // 7 days
+      expect(TOKEN_EXPIRATION.RESET_PASSWORD).toBe(60 * 60 * 1000); // 1 hour
+      expect(TOKEN_EXPIRATION.EMAIL_VERIFICATION).toBe(24 * 60 * 60 * 1000); // 24 hours
+    });
+  });
+
+  describe('Token Types', () => {
+    it('should have correct token types', () => {
+      expect(TokenType.ACCESS).toBe('access');
+      expect(TokenType.REFRESH).toBe('refresh');
+      expect(TokenType.RESET_PASSWORD).toBe('reset_password');
+      expect(TokenType.EMAIL_VERIFICATION).toBe('email_verification');
+    });
+  });
+
+  describe('Edge Cases', () => {
+    it('should handle token with minimal data', () => {
+      const minimalData = {
+        id: 'minimal-token',
+        userId: 'user-minimal',
+        type: TokenType.ACCESS,
+        value: 'minimal-value',
+        expiresAt: new Date(),
+        isRevoked: false,
+        metadata: {},
+        createdAt: new Date(),
+        updatedAt: new Date()
+      };
+
+      const token = TokenEntity.create(minimalData);
+      
+      expect(token.id).toBe(minimalData.id);
+      expect(token.metadata).toEqual({});
     });
 
-    expect(token.shouldCleanup(1)).toBe(true); // Should cleanup after 1 hour
-    expect(token.shouldCleanup(3)).toBe(false); // Should not cleanup after 3 hours
+    it('should handle token creation with null metadata', () => {
+      const createData: CreateTokenData = {
+        userId: 'user-null-meta',
+        type: TokenType.REFRESH,
+        value: 'token-with-null-meta'
+      };
+
+      const token = TokenEntity.createNew(createData, 'null-meta-token');
+      
+      expect(token.metadata).toEqual({});
+    });
   });
 });

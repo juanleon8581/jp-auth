@@ -1,5 +1,5 @@
 import '../../../setup';
-import { FailedLogin, CreateFailedLoginData, UpdateFailedLoginData, FAILED_LOGIN_CONSTANTS } from '../failed-login.entity';
+import { FailedLoginEntity, CreateFailedLoginData, UpdateFailedLoginData, FAILED_LOGIN_CONSTANTS } from '../failed-login.entity';
 
 describe('FailedLogin Entity', () => {
   const mockFailedLoginData = {
@@ -16,7 +16,7 @@ describe('FailedLogin Entity', () => {
   };
 
   it('should create a failed login from data', () => {
-    const failedLogin = FailedLogin.create(mockFailedLoginData);
+    const failedLogin = FailedLoginEntity.create(mockFailedLoginData);
 
     expect(failedLogin.id).toBe(mockFailedLoginData.id);
     expect(failedLogin.userId).toBe(mockFailedLoginData.userId);
@@ -29,7 +29,7 @@ describe('FailedLogin Entity', () => {
   });
 
   it('should create failed login from raw data', () => {
-    const failedLogin = FailedLogin.fromRaw(mockFailedLoginData);
+    const failedLogin = FailedLoginEntity.fromRaw(mockFailedLoginData);
 
     expect(failedLogin.userId).toBe(mockFailedLoginData.userId);
     expect(failedLogin.ipAddress).toBe(mockFailedLoginData.ipAddress);
@@ -44,7 +44,7 @@ describe('FailedLogin Entity', () => {
       metadata: { device: 'mobile' }
     };
 
-    const newFailedLogin = FailedLogin.createNew(createData);
+    const newFailedLogin = FailedLoginEntity.createNew(createData);
 
     expect(newFailedLogin.userId).toBe(createData.userId);
     expect(newFailedLogin.ipAddress).toBe(createData.ipAddress);
@@ -58,14 +58,14 @@ describe('FailedLogin Entity', () => {
   });
 
   it('should convert to JSON', () => {
-    const failedLogin = FailedLogin.create(mockFailedLoginData);
+    const failedLogin = FailedLoginEntity.create(mockFailedLoginData);
     const json = failedLogin.toJSON();
 
     expect(json).toEqual(mockFailedLoginData);
   });
 
   it('should increment attempts', () => {
-    const failedLogin = FailedLogin.create(mockFailedLoginData);
+    const failedLogin = FailedLoginEntity.create(mockFailedLoginData);
     const incrementedFailedLogin = failedLogin.incrementAttempts();
 
     expect(incrementedFailedLogin.attempts).toBe(mockFailedLoginData.attempts + 1);
@@ -75,12 +75,12 @@ describe('FailedLogin Entity', () => {
   });
 
   it('should determine if account should be locked', () => {
-    const failedLoginBelowMax = FailedLogin.create({
+    const failedLoginBelowMax = FailedLoginEntity.create({
       ...mockFailedLoginData,
       attempts: FAILED_LOGIN_CONSTANTS.MAX_ATTEMPTS - 1
     });
 
-    const failedLoginAtMax = FailedLogin.create({
+    const failedLoginAtMax = FailedLoginEntity.create({
       ...mockFailedLoginData,
       attempts: FAILED_LOGIN_CONSTANTS.MAX_ATTEMPTS
     });
@@ -94,19 +94,19 @@ describe('FailedLogin Entity', () => {
     const pastAttempt = new Date(now.getTime() - (FAILED_LOGIN_CONSTANTS.LOCKOUT_DURATION_MINUTES + 1) * 60 * 1000);
     const recentAttempt = new Date(now.getTime() - 5 * 60 * 1000); // 5 minutes ago
 
-    const expiredLockout = FailedLogin.create({
+    const expiredLockout = FailedLoginEntity.create({
       ...mockFailedLoginData,
       attempts: FAILED_LOGIN_CONSTANTS.MAX_ATTEMPTS,
       lastAttemptAt: pastAttempt
     });
 
-    const activeLockout = FailedLogin.create({
+    const activeLockout = FailedLoginEntity.create({
       ...mockFailedLoginData,
       attempts: FAILED_LOGIN_CONSTANTS.MAX_ATTEMPTS,
       lastAttemptAt: recentAttempt
     });
 
-    const noLockout = FailedLogin.create({
+    const noLockout = FailedLoginEntity.create({
       ...mockFailedLoginData,
       attempts: 2, // Below max attempts
       lastAttemptAt: recentAttempt
@@ -121,13 +121,13 @@ describe('FailedLogin Entity', () => {
     const now = new Date();
     const pastAttempt = new Date(now.getTime() - 15 * 60 * 1000); // 15 minutes ago
 
-    const lockedFailedLogin = FailedLogin.create({
+    const lockedFailedLogin = FailedLoginEntity.create({
       ...mockFailedLoginData,
       attempts: FAILED_LOGIN_CONSTANTS.MAX_ATTEMPTS, // Must be at max to be locked
       lastAttemptAt: pastAttempt
     });
 
-    const unlockedFailedLogin = FailedLogin.create({
+    const unlockedFailedLogin = FailedLoginEntity.create({
       ...mockFailedLoginData,
       attempts: 2, // Below max attempts
       lastAttemptAt: pastAttempt
@@ -140,12 +140,12 @@ describe('FailedLogin Entity', () => {
 
   it('should determine if record should be cleaned up', () => {
     const now = new Date();
-    const oldRecord = FailedLogin.create({
+    const oldRecord = FailedLoginEntity.create({
       ...mockFailedLoginData,
       lastAttemptAt: new Date(now.getTime() - (FAILED_LOGIN_CONSTANTS.CLEANUP_AFTER_DAYS + 1) * 24 * 60 * 60 * 1000)
     });
 
-    const recentRecord = FailedLogin.create({
+    const recentRecord = FailedLoginEntity.create({
       ...mockFailedLoginData,
       lastAttemptAt: new Date(now.getTime() - 1 * 24 * 60 * 60 * 1000) // 1 day ago
     });
@@ -155,7 +155,7 @@ describe('FailedLogin Entity', () => {
   });
 
   it('should reset failed login attempts', () => {
-    const failedLogin = FailedLogin.create({
+    const failedLogin = FailedLoginEntity.create({
       ...mockFailedLoginData,
       attempts: 5,
       lockedUntil: new Date()
@@ -170,7 +170,7 @@ describe('FailedLogin Entity', () => {
   });
 
   it('should get attempts remaining', () => {
-    const failedLogin = FailedLogin.create({
+    const failedLogin = FailedLoginEntity.create({
       ...mockFailedLoginData,
       attempts: 2
     });
@@ -180,7 +180,7 @@ describe('FailedLogin Entity', () => {
   });
 
   it('should handle edge case when attempts exceed max', () => {
-    const failedLogin = FailedLogin.create({
+    const failedLogin = FailedLoginEntity.create({
       ...mockFailedLoginData,
       attempts: FAILED_LOGIN_CONSTANTS.MAX_ATTEMPTS + 2
     });

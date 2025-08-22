@@ -1,5 +1,5 @@
 import '../../../setup';
-import { User, CreateUserData } from '../user.entity';
+import { UserEntity, CreateUserData } from '../user.entity';
 
 describe('User Entity', () => {
   it('should create a user without Zod validation', () => {
@@ -12,7 +12,7 @@ describe('User Entity', () => {
 
     // This should work without any validation since we removed Zod
     expect(() => {
-      const user = User.create({
+      const user = UserEntity.create({
         id: 'test-id',
         email: userData.email,
         name: userData.name,
@@ -28,7 +28,7 @@ describe('User Entity', () => {
   });
 
   it('should update user data without validation', () => {
-    const user = User.create({
+    const user = UserEntity.create({
       id: 'test-id',
       email: 'test@example.com',
       name: 'Test User',
