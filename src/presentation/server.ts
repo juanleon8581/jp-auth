@@ -24,7 +24,7 @@ export class Server {
     this.app.use(this.router);
 
     this.app.listen(this.port, () => {
-      console.log(`Server is running on port ${this.port}`);
+      console.log(`Server is running on port http://localhost:${this.port}`);
     });
   }
 }
