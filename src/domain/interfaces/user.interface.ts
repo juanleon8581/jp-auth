@@ -17,9 +17,7 @@ export interface IUserData {
   id: string;
   email: string;
   name: string;
-  phone: string | null;
-  avatar_url: string | null;
+  phone?: string;
+  avatar_url?: string;
   email_verified: boolean;
-  created_at: Date;
-  updated_at: Date;
 }

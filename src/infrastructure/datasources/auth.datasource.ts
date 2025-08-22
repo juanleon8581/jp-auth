@@ -8,8 +8,20 @@ import { supabase } from "@/infrastructure/config/supabase.client";
 
 export class AuthDatasource implements AuthRepository {
   constructor(private readonly authProvider = supabase) {}
-  register(dto: RegisterDto): Promise<UserEntity> {
-    throw new Error("Method not implemented.");
+  async register(dto: RegisterDto): Promise<UserEntity> {
+    const { data, error } = await this.authProvider.auth.signUp({
+      email: dto.email,
+      password: dto.password,
+    });
+    if (error) throw error;
+    if (!data.user) throw new Error("User not created");
+    const user = UserEntity.create({
+      id: data.user.id,
+      email: data.user.email!,
+      name: dto.name,
+      email_verified: false,
+    });
+    return user;
   }
   login(dto: LoginDto): Promise<UserEntity> {
     throw new Error("Method not implemented.");

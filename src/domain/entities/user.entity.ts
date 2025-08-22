@@ -2,7 +2,7 @@ import {
   ICreateUserData,
   IUpdateUserData,
   IUserData,
-} from '../interfaces/user.interface';
+} from "../interfaces/user.interface";
 
 // Type aliases for backward compatibility
 export type CreateUserData = ICreateUserData;
@@ -15,11 +15,9 @@ export class UserEntity {
     public readonly id: string,
     public readonly email: string,
     public readonly name: string,
-    public readonly phone: string | null,
-    public readonly avatar_url: string | null,
     public readonly email_verified: boolean,
-    public readonly created_at: Date,
-    public readonly updated_at: Date
+    public readonly phone?: string,
+    public readonly avatar_url?: string
   ) {}
 
   // Factory method to create User from data
@@ -28,11 +26,9 @@ export class UserEntity {
       data.id,
       data.email,
       data.name,
-      data.phone,
-      data.avatar_url,
       data.email_verified,
-      data.created_at,
-      data.updated_at
+      data.phone,
+      data.avatar_url
     );
   }
 
@@ -47,24 +43,20 @@ export class UserEntity {
       id: this.id,
       email: this.email,
       name: this.name,
+      email_verified: this.email_verified,
       phone: this.phone,
       avatar_url: this.avatar_url,
-      email_verified: this.email_verified,
-      created_at: this.created_at,
-      updated_at: this.updated_at,
     };
   }
 
   // Get public user data (without sensitive information)
-  toPublic(): Omit<UserData, 'email_verified'> {
+  toPublic(): Omit<UserData, "email_verified"> {
     return {
       id: this.id,
       email: this.email,
       name: this.name,
       phone: this.phone,
       avatar_url: this.avatar_url,
-      created_at: this.created_at,
-      updated_at: this.updated_at,
     };
   }
 
@@ -79,11 +71,9 @@ export class UserEntity {
       this.id,
       this.email,
       data.name ?? this.name,
-      data.phone ?? this.phone,
-      data.avatar_url ?? this.avatar_url,
       this.email_verified,
-      this.created_at,
-      new Date() // updated_at
+      data.phone ?? this.phone,
+      data.avatar_url ?? this.avatar_url
     );
   }
 
