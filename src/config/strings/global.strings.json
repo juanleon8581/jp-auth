@@ -1,0 +1,30 @@
+{
+  "ERRORS": {
+    "DATA_VALIDATION": {
+      "MISSING_FIELDS": "Faltan campos obligatorios",
+      "INVALID_FIELDS": "Campos inválidos",
+      "UNKNOWN_VALIDATION_ERROR": "Error de validación desconocido"
+    },
+    "REGISTER_VALIDATION": {
+      "NAME": {
+        "MIN_LENGTH": "El nombre debe tener al menos 2 caracteres",
+        "MAX_LENGTH": "El nombre no puede exceder 50 caracteres",
+        "INVALID_FORMAT": "El nombre solo puede contener letras y espacios"
+      },
+      "LASTNAME": {
+        "MIN_LENGTH": "El apellido debe tener al menos 2 caracteres",
+        "MAX_LENGTH": "El apellido no puede exceder 50 caracteres",
+        "INVALID_FORMAT": "El apellido solo puede contener letras y espacios"
+      },
+      "EMAIL": {
+        "INVALID_FORMAT": "Debe ser un email válido",
+        "MAX_LENGTH": "El email no puede exceder 100 caracteres"
+      },
+      "PASSWORD": {
+        "MIN_LENGTH": "La contraseña debe tener al menos 8 caracteres",
+        "MAX_LENGTH": "La contraseña no puede exceder 128 caracteres",
+        "INVALID_FORMAT": "La contraseña debe contener al menos: 1 minúscula, 1 mayúscula, 1 número y 1 carácter especial"
+      }
+    }
+  }
+}
